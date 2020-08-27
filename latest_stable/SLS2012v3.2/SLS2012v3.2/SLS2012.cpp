@@ -444,6 +444,7 @@ void scan()
 {
 	Scanner *scanner;
 	scanner = new Scanner(SCANNER_USE_CANON);
+	scanner->init();
 
 	int numOfCams;
 	CameraController *tmp = new CameraController(false);
@@ -466,11 +467,18 @@ void scan()
 	}
 }
 
+void scanASync()
+{
+
+}
+
+
 
 void captureCalibrationImagesAndScan()
 {
 	Scanner *scanner;
 	scanner = new Scanner(SCANNER_USE_CANON);
+		scanner->init();
 
 	int numOfCams;
 	CameraController *tmp = new CameraController(false);
@@ -531,6 +539,71 @@ void captureCalibrationImagesAndScan()
 
 }
 
+void captureCalibrationImagesAndScanASync()
+{
+	Scanner* scanner;
+	scanner = new Scanner(SCANNER_USE_CANON);
+	scanner->init();
+
+	int numOfCams;
+	CameraController* tmp = new CameraController(false);
+	numOfCams = tmp->getNumOfCams();
+
+	CameraController** cameras = new CameraController * [numOfCams];
+
+	cameras[0] = tmp;
+
+	for (int i = 1; i < numOfCams; i++)
+	{
+		cameras[i] = new CameraController(false);
+	}
+
+	bool continue_val = true;
+
+	//take calibration pictures
+	for (int i = 0; i < numOfCams; i++)
+	{
+
+		cv::waitKey(1);
+
+		std::cout << "\nPress 'Enter' to capture photos for camera calibration. When you are done press 'Space'.\n" << std::endl;
+
+		//capture calibration images with camera [i]
+		continue_val = scanner->capturePhotoSequence(cameras[i]);
+
+		//if user dont want ot continue break
+		if (!continue_val)
+		{
+			for (int i = 0; i < numOfCams; i++)
+			{
+				delete cameras[i];
+			}
+			return;
+		}
+
+	}
+
+	continue_val = scanner->capturePhotoAllCams(cameras, numOfCams);
+
+	//if user dont want ot continue break
+	if (!continue_val)
+	{
+		for (int i = 0; i < numOfCams; i++)
+		{
+			delete cameras[i];
+		}
+		return;
+	}
+
+	scanner->capturePaterns(cameras, numOfCams);
+
+	for (int i = 0; i < numOfCams; i++)
+	{
+		delete cameras[i];
+	}
+
+}
+
 void rename()
 {
 
@@ -556,6 +629,79 @@ void rename()
 
 }
 
+// ASync Method
+void ASyncMenuLoop()
+{
+	bool bQuit = false;
+
+	Scanner* scanner;
+	bool bASync = true;
+
+	scanner = new Scanner(SCANNER_USE_CANON);
+
+	scanner->init();
+
+	// FIXME - BEGIN CAPTURE PATTERNS 
+/*	
+	CameraController* tmp = new CameraController(false, true);
+	numOfCams = tmp->getNumOfCams();
+
+	CameraController** cameras = new CameraController * [numOfCams];
+
+	cameras[0] = tmp;
+
+	for (int i = 1; i < numOfCams; i++)
+	{
+		cameras[i] = new CameraController(false);
+	}
+
+	scanner->capturePaterns(cameras, numOfCams);
+
+	for (int i = 0; i < numOfCams; i++)
+	{
+		delete cameras[i];
+	}
+*/
+	// FIXME - END CAPTURE PATTERNS 
+
+	while (CanonCamera::GetCanonCameraCount() == 0)
+	{
+		//clear console
+		std::cout << "Waiting for Camera...\n";
+		Sleep(1000);
+	}
+
+	std::cout << CanonCamera::GetCanonCameraCount() << " Cameras are connected.\n";
+
+	std::cout << "Task List\n"
+		<< "3.Scan With Canon Camera(with Calib)\n"
+		<< "4.Scan With Canon Camera(Scan Only)\n"
+		<< "10.Exit\n"
+		<< "\n Pleace select task!";
+
+	int select;
+	std::cin >> select;
+
+	switch (select) {
+	case 3:
+		captureCalibrationImagesAndScanASync();
+		break;
+		//Scan With Canon Camera(Scan Only)
+	case 4:
+		scanASync();
+		break;
+		//GrayCodes Projection
+	case 10: 
+		bQuit = true;
+		break;
+	}
+
+	if (!bQuit)
+	{
+		ASyncMenuLoop();
+	}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	
@@ -568,7 +714,17 @@ int _tmain(int argc, _TCHAR* argv[])
 		loadConfigurations();
 	}
 
-	std::cout<<"Task List\n1. Rename the dataSet \n2. Reconstruct\n3. Scan With Canon Camera(with Calib)\n4. Scan With Canon Camera(Scan Only)\n5. GrayCodes Projection\n6. Generate and Save gray codes\n7. Calibration \n8. Create Confiquration xml file with default settings  \n\n Pleace select task! ";
+	std::cout<<"Task List\n" 
+		<< "1.Rename the dataSet \n"
+		<< "2.Reconstruct\n"
+		<< "3.Scan With Canon Camera(with Calib)\n"
+		<< "4.Scan With Canon Camera(Scan Only)\n"
+		<< "5.GrayCodes Projection\n"
+		<< "6.Generate and Save gray codes\n"
+		<< "7.Calibration \n"
+		<< "8.Create Confiquration xml file with default settings  \n"
+		<< "9.ASync 3. 4."
+		<< "\n Pleace select task!";
 
 	int select;
 	std::cin>>select;
@@ -610,7 +766,11 @@ int _tmain(int argc, _TCHAR* argv[])
 		case 8:
 			createConfigurationFile("slsConfigDefault.xml");
 			break;
-		
+			//Create Default Configuration Settings XML file
+		case 9:
+			ASyncMenuLoop();
+			break;
+
 	}
 
 	std::cout<<"\nPress any key to exit.";

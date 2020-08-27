@@ -17,6 +17,7 @@ class CameraController
 {
 	public:
 		CameraController(bool webFlag);
+		CameraController(bool webFlag, bool aSync);
 
 		~CameraController(void);
 

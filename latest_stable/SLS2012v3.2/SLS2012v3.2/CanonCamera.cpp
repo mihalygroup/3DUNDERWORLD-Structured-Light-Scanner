@@ -67,6 +67,11 @@ CanonCamera::CanonCamera(void)
 	}
 }
 
+CanonCamera::CanonCamera(bool aSync)
+{
+}
+
+
 CanonCamera::~CanonCamera(void)
 {
 	if(liveView)
@@ -234,7 +239,8 @@ void CanonCamera::UpdateView()
         BYTE* pBits = (BYTE*)cImage.GetBits();
         if (pitch < 0)
             pBits += (pitch *(height -1));
-        memcpy(liveImage->data, pBits, abs(pitch) * height);
+        // FIXME
+        // memcpy(liveImage->data, pBits, abs(pitch) * height);
 		
     }
 
@@ -243,7 +249,8 @@ void CanonCamera::UpdateView()
     GlobalFree(hMem);
 	
 
-    cvFlip(liveImage, NULL, 0);
+    //FIXME
+    // cvFlip(liveImage, NULL, 0);
 
     // Release stream
     if(stream != NULL)
@@ -296,3 +303,27 @@ void CanonCamera::captureImg()
 	} 
 	while (err != EDS_ERR_OK);
 }
+
+// ASync Methods
+int CanonCamera::GetCanonCameraCount()
+{
+    return numOfCameras;
+}
+void CanonCamera::AddCameraASync()
+{
+    std::cout << "Canon Camera Detected!";
+
+    EdsCameraListRef cameraList = NULL;
+
+	EdsGetCameraList(&cameraList);
+
+	EdsUInt32	 camCount = 0;
+	EdsGetChildCount(cameraList, &camCount);
+
+	EdsError err = EDS_ERR_OK;
+
+    CanonCamera::numOfCameras = camCount;
+    return;
+}
+
+

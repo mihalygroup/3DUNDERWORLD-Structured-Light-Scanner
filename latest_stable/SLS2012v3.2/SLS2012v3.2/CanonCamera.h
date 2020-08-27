@@ -38,6 +38,7 @@ class CanonCamera
 {
 	public:
 		CanonCamera(void);
+		CanonCamera(bool aSync);
 
 		~CanonCamera(void);
 
@@ -47,6 +48,11 @@ class CanonCamera
 
 		int getNumOfCams();
 		void captureImg();
+
+
+		// ASync Methods
+		static int GetCanonCameraCount();
+		static void AddCameraASync();
 
 	private:
 

@@ -50,10 +50,14 @@ class Scanner
 
 public:
 	Scanner(bool web);
+	
+	
+	// BEGIN Async Methods
+	void init();
 
 	~Scanner(void);
 
-	void scan(bool scanOnly);
+	// void scan(bool scanOnly);
 
 	void capturePaterns(CameraController *cameras[],int camCount);
 	
@@ -64,6 +68,42 @@ public:
 	bool capturePhotoSequence(CameraController *camera, char* path);
 
 	
+
+	// EDS Methods
+
+	static EdsError downloadImage(EdsDirectoryItemRef directoryItem);
+
+	static EdsError Scanner::getCurrentCameraRef(EdsVoid* inContext, EdsCameraRef& inoutCamera);
+	static EdsError registerCallbacks(EdsVoid* Context);
+	
+	// EDS Callbacks Methods
+	// see EdsProgressCallback
+	static EdsError EDSCALLBACK handleProgressEvent(EdsUInt32 inPercent,
+		EdsVoid* inContext,
+		EdsBool* outCancel
+	);
+
+	// see EdsCameraAddedHandler
+	static EdsError EDSCALLBACK handleCameraAddedEvent(
+		EdsVoid* inContext
+	);
+
+
+	// See EdsObjectEventHandler
+	static EdsError EDSCALLBACK handleObjectEvent(EdsObjectEvent inEvent,
+		EdsBaseRef inRef,
+		EdsVoid* inContext);
+
+	// See EdsPropertyEventHandler
+	static EdsError EDSCALLBACK handlePropertyEvent(EdsPropertyEvent inEvent,
+		EdsPropertyID           inPropertyID,
+		EdsUInt32               inParam, 
+		EdsVoid* inContext);
+
+	// See EdsStateEventHandler
+	static EdsError EDSCALLBACK handleStateEvent(EdsStateEvent inEvent,
+		EdsUInt32               inEventData,
+		EdsVoid* inContext);
 
 private:
 

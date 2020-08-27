@@ -22,6 +22,16 @@ CameraController::CameraController(bool webFlag)
 		canonCam = new CanonCamera();
 }
 
+CameraController::CameraController(bool webFlag, bool aSync)
+{
+	web = webFlag;
+
+	if (webFlag == true)
+		webCam = new WebCam(webCamID, cam_w, cam_h);
+	else
+		canonCam = new CanonCamera(aSync);
+}
+
 CameraController::~CameraController(void)
 {
 	if(web == true)
