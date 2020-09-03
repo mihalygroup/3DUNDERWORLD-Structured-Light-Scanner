@@ -216,7 +216,7 @@ void CanonCamera::UpdateView()
 
     // OpenCV_4
 	// liveImage = (cv::Mat*)cvCreateImage(cv::Size(imageInfo.width, imageInfo.height), IPL_DEPTH_8U, imageInfo.numOfComponents);
-    liveImage = new cv::Mat(cv::Size(imageInfo.width, imageInfo.height), CV_8U, imageInfo.numOfComponents);
+    liveImage = new cv::Mat(cv::Size(imageInfo.width, imageInfo.height), CV_8UC1, imageInfo.numOfComponents);
     
     EdsUInt32 DataSize = 0;
 
@@ -239,8 +239,7 @@ void CanonCamera::UpdateView()
         BYTE* pBits = (BYTE*)cImage.GetBits();
         if (pitch < 0)
             pBits += (pitch *(height -1));
-        // FIXME
-        // memcpy(liveImage->data, pBits, abs(pitch) * height);
+        memcpy(liveImage->data, pBits, abs(pitch) * height);
 		
     }
 
@@ -248,9 +247,7 @@ void CanonCamera::UpdateView()
     
     GlobalFree(hMem);
 	
-
-    //FIXME
-    // cvFlip(liveImage, NULL, 0);
+    cvFlip(liveImage, NULL, 0);
 
     // Release stream
     if(stream != NULL)
@@ -298,7 +295,8 @@ void CanonCamera::captureImg()
 	do 
 	{
 		err = EdsSendCommand(camera, kEdsCameraCommand_TakePicture, 0);
-		if (err != EDS_ERR_OK)	
+
+        if (err != EDS_ERR_OK)	
 			Sleep(500);
 	} 
 	while (err != EDS_ERR_OK);
