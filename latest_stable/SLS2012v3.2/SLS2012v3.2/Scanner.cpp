@@ -55,6 +55,20 @@ void Scanner::init()
 	}
 }
 
+// Utils
+#define waitForInputKey(duration, message) LogAndWaitForInputKey(__FILE__, __LINE__, duration, message)
+int Scanner::LogAndWaitForInputKey(char* szFile, int nLine, int duration, const std::string message)
+{
+	int key = 0;
+
+	std::cout << "At " << szFile << ":" << nLine << " "
+		<< "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit."
+		<< std::endl;
+
+	key = cv::waitKey(duration);
+	return key;
+}
+
 bool Scanner::capturePhotoSequence(CameraController *camera)
 {
 
@@ -73,7 +87,7 @@ bool Scanner::capturePhotoSequence(CameraController *camera)
 
 		camera->UpdateView();
 
-		key = cv::waitKey(10);
+		key = waitForInputKey(0, "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit.");
 
 		///If enter is pressed then capture the image
 		if (key == 13)
@@ -94,7 +108,7 @@ bool Scanner::capturePhotoSequence(CameraController *camera)
 
 	camera->endLiveview();
 
-	cv::waitKey(100);
+	cv::waitKey(100); // FIXME: replace with notif or error code?
 	if(key == 27)
 		return 0;
 	else 
@@ -127,7 +141,7 @@ bool Scanner::capturePhotoSequence(CameraController *camera, char* path)
 	
 		camera->UpdateView();
 
-		key = cv::waitKey(10);
+		key = waitForInputKey(0, "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit.");
 
 		///If enter is pressed then capture the image
 		if (key == 13)
@@ -147,7 +161,7 @@ bool Scanner::capturePhotoSequence(CameraController *camera, char* path)
 
 	camera->endLiveview();
 
-	cv::waitKey(100);
+	cv::waitKey(100); // FIXME: replace with notif or error code?
 
 	if(key == 27)
 		return 0;
@@ -167,16 +181,17 @@ void Scanner::capturePaterns(CameraController *camera[],int camCount)
 
 	proj->showImg(grayCodes->getNextImg());
 
-	cv::waitKey(100);
+	cv::waitKey(100); // FIXME: replace with notif or error code?
 
 	std::cout << "done!\n" << std::endl;
-	
-	std::cout<<"System is ready to scan object. Press 'Enter' to start the Automatic Scanning\n";
-		
+			
 	int key=0;
-		
+	
+	// FIXME: Infinite loop !?!
+	/*
 	while(key==0)
 		key = cv::waitKey(10);
+	*/
 
 	int grayCount=0;
 
@@ -208,15 +223,13 @@ void Scanner::capturePaterns(CameraController *camera[],int camCount)
 
 		proj->showImg(grayCodes->getNextImg());
 		
-		
-
-		key=cv::waitKey(100);
-	
+		// FIXME: error code or notif
+		key = waitForInputKey(100, "Press 'Esc' to Stop");
 		if(key == 27)
 			break;
 	}
 
-	cv::waitKey(300);
+	cv::waitKey(300); // FIXME: replace with notif or return code
 
 }
 
@@ -244,7 +257,7 @@ bool Scanner::capturePhotoAllCams(CameraController *cameras[],int camCount)
 			cameras[i]->UpdateView();
 		}
 		
-		key = cv::waitKey(10);
+		key = waitForInputKey(0, "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit.");
 
 		///If enter is pressed then capture the image
 		if (key == 13)
@@ -270,7 +283,8 @@ bool Scanner::capturePhotoAllCams(CameraController *cameras[],int camCount)
 		cameras[i]->endLiveview();
 	}
 
-	cv::waitKey(100);
+
+	cv::waitKey(100); //FIXME: use notif or error code
 
 	if(key == 27)
 		return 0;

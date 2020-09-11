@@ -60,6 +60,8 @@ public:
 	cv::Mat rotationMatrix;
 	cv::Mat translationVector;
 
+	// Utils
+	int LogAndWaitForInputKey(char* szFile, int nLine, int duration, const std::string message);
 private:
 
 	//functions

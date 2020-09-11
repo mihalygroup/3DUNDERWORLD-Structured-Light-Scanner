@@ -49,6 +49,8 @@ class CanonCamera
 		int getNumOfCams();
 		void captureImg();
 
+		// Utils
+		int waitForInputKey(int duration, const std::string message);
 
 		// ASync Methods
 		static int GetCanonCameraCount();

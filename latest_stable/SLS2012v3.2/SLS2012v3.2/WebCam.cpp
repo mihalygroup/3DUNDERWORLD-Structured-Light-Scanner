@@ -105,9 +105,9 @@ void WebCam::captureImg(char* dirPath)
 	
 	cv::Mat resampled_image;
 	capture.read(resampled_image);
-	cv::waitKey(20);
+	cv::waitKey(20); // FIXME: return code or notif
 	capture.read(resampled_image);
-	cv::waitKey(20);
+	cv::waitKey(20); // FIXME: return code or notif
 	capture.read(resampled_image);
 
 	cv::imwrite(path.str().c_str(), resampled_image);

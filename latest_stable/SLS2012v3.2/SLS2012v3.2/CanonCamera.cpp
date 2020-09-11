@@ -157,11 +157,12 @@ void CanonCamera::UpdateView()
         err = EdsDownloadEvfImage(camera, evfImage);
         if(err != EDS_ERR_OK && err != EDS_ERR_OBJECT_NOTREADY)
         {
-            printf("Error in EdsDownloadEvfImage: 0x%X\n", err);
+            printf("Error in EdsDownloadEvfImage [%d/20]: Unknow Error [0x%X]\n", numTries, err);
 
         }
         if(err == EDS_ERR_OBJECT_NOTREADY)
         {
+            printf("Error in EdsDownloadEvfImage [%d/20]: Object Not Ready [0x%X]\n", numTries, err);
             Sleep(250);
         }
         else
@@ -174,114 +175,144 @@ void CanonCamera::UpdateView()
         printf("ERROR: camera is taking too long for EdsDownloadEvfImage\n");
     }
 
-    unsigned char* pByteImage = NULL;
-
-    // Get image (JPEG) pointer.
-    err = EdsGetPointer(stream, (EdsVoid**)&pByteImage );
-    if(err != EDS_ERR_OK)
+    if (err == EDS_ERR_OK)
     {
-        printf("Error in EdsGetPointer Histogram: 0x%X\n", err);
-    }
+        unsigned char* pByteImage = NULL;
 
-    EdsUInt64 size;
-    err = EdsGetLength(stream, &size);
-    if(err != EDS_ERR_OK)
-    {
-        printf("Error in EdsGetLength Histogram: 0x%X\n", err);
- 
-    }
-
-    EdsImageRef image = NULL;
-    EdsImageInfo imageInfo;
-
-    err = EdsCreateImageRef(stream, &image);
-    if(err != EDS_ERR_OK)
-    {
-        printf("Error in EdsCreateImageRef: 0x%X\n", err);
- 
-    }
-
-    err = EdsGetImageInfo(image, kEdsImageSrc_FullView, &imageInfo);
-    if(err != EDS_ERR_OK)
-    {
-        printf("Error in EdsGetImageInfo: 0x%X\n", err);
-
-    }
-
-    if(imageInfo.componentDepth != 8)
-    {
-        printf("Error imageInfo.componentDepth != 8\n");
-
-    }
-
-    // OpenCV_4
-	// liveImage = (cv::Mat*)cvCreateImage(cv::Size(imageInfo.width, imageInfo.height), IPL_DEPTH_8U, imageInfo.numOfComponents);
-    liveImage = new cv::Mat(cv::Size(imageInfo.width, imageInfo.height), CV_8UC1, imageInfo.numOfComponents);
-    
-    EdsUInt32 DataSize = 0;
-
-    CImage cImage;
-    HRESULT hr;
-
-    CComPtr<IStream> iStream = NULL;
-    HGLOBAL hMem = GlobalAlloc(GHND, size);
-    LPVOID pBuff = GlobalLock(hMem);
-    memcpy(pBuff, pByteImage, size);
-    GlobalUnlock(hMem);
-    hr = CreateStreamOnHGlobal(hMem, TRUE, &iStream);
-
-    // Get the bitmap image from the stream
-    if ((hr = cImage.Load(iStream)) == S_OK)
-    {
-        
-        int pitch = cImage.GetPitch();
-        int height = cImage.GetHeight();
-        BYTE* pBits = (BYTE*)cImage.GetBits();
-        if (pitch < 0)
-            pBits += (pitch *(height -1));
-        memcpy(liveImage->data, pBits, abs(pitch) * height);
-		
-    }
-
-	cImage.~CImage();
-    
-    GlobalFree(hMem);
-	
-    cvFlip(liveImage, NULL, 0);
-
-    // Release stream
-    if(stream != NULL)
-    {
-        err = EdsRelease(stream);
-        if(err != EDS_ERR_OK)
+        // Get image (JPEG) pointer.
+        err = EdsGetPointer(stream, (EdsVoid**)&pByteImage);
+        if (err != EDS_ERR_OK)
         {
-            printf("Error in EdsRelease: 0x%X\n", err);
+            printf("Error in EdsGetPointer Histogram: 0x%X\n", err);
+        }
+
+        EdsUInt64 size;
+        err = EdsGetLength(stream, &size);
+        if (err != EDS_ERR_OK)
+        {
+            printf("Error in EdsGetLength Histogram: 0x%X\n", err);
 
         }
-        stream = NULL;
-    }
 
-   
-   if(evfImage != NULL)
-    {
-        err = EdsRelease(evfImage);
-        if(err != EDS_ERR_OK)
+        EdsImageRef image = NULL;
+        EdsImageInfo imageInfo;
+
+        err = EdsCreateImageRef(stream, &image);
+        if (err != EDS_ERR_OK)
         {
-            printf("Error in EdsRelease: 0x%X\n", err);
+            printf("Error in EdsCreateImageRef: 0x%X\n", err);
 
         }
-        evfImage = NULL;
+
+        err = EdsGetImageInfo(image, kEdsImageSrc_FullView, &imageInfo);
+        if (err != EDS_ERR_OK)
+        {
+            printf("Error in EdsGetImageInfo: 0x%X\n", err);
+
+        }
+
+        if (imageInfo.componentDepth != 8)
+        {
+            printf("Error imageInfo.componentDepth != 8\n");
+
+        }
+
+        // OpenCV_4
+        // liveImage = (cv::Mat*)cvCreateImage(cv::Size(imageInfo.width, imageInfo.height), IPL_DEPTH_8U, imageInfo.numOfComponents);
+        /*
+        liveImage = new cv::Mat(cv::Size(imageInfo.width, imageInfo.height), CV_8UC1, imageInfo.numOfComponents);
+
+        if (liveImage->total() < size)
+        {
+            printf("Warning Open CV image [%d] size is smaller than Captured image [%d]",
+                liveImage->total(),
+                size);
+
+        }
+        */
+        liveImage = NULL;
+
+        EdsUInt32 DataSize = 0;
+
+        CImage cImage;
+        HRESULT hr;
+
+        CComPtr<IStream> iStream = NULL;
+        HGLOBAL hMem = GlobalAlloc(GHND, size);
+        LPVOID pBuff = GlobalLock(hMem);
+        memcpy(pBuff, pByteImage, size);
+        GlobalUnlock(hMem);
+        hr = CreateStreamOnHGlobal(hMem, TRUE, &iStream);
+
+        // Get the bitmap image from the stream
+        if ((hr = cImage.Load(iStream)) == S_OK)
+        {
+
+            int pitch = cImage.GetPitch();
+            int height = cImage.GetHeight();
+            BYTE* pBits = (BYTE*)cImage.GetBits();
+            if (pitch < 0)
+                pBits += (pitch * (height - 1));
+
+            liveImage = new cv::Mat(cv::Size(abs(pitch), height), CV_8UC1, imageInfo.numOfComponents);
+            if (liveImage->total() < abs(pitch) * height)
+            {
+                printf("Warning Open CV image [%d] size is smaller than bitmap in stream [%d]",
+                    liveImage->total(),
+                    size);
+            }
+            memcpy(liveImage->data, pBits, abs(pitch) * height);
+
+        }
+
+        cImage.~CImage();
+
+        GlobalFree(hMem);
+
+        if (liveImage != NULL && liveImage->total() > 0)
+        {
+            cv::flip(*liveImage, *liveImage, 0);
+        }
+
+        // Release stream
+        if (stream != NULL)
+        {
+            err = EdsRelease(stream);
+            if (err != EDS_ERR_OK)
+            {
+                printf("Error in EdsRelease: 0x%X\n", err);
+
+            }
+            stream = NULL;
+        }
+
+
+        if (evfImage != NULL)
+        {
+            err = EdsRelease(evfImage);
+            if (err != EDS_ERR_OK)
+            {
+                printf("Error in EdsRelease: 0x%X\n", err);
+
+            }
+            evfImage = NULL;
+        }
+
+        EdsRelease(image);
+
+        if (liveImage != NULL && liveImage->total() > 0)
+        {
+            cv::imshow(windowName.c_str(), *liveImage);
+        }
+
+        //OpenCV_4
+        // cvReleaseImage(&liveImage);
+        if (liveImage != NULL)
+            liveImage->release();
+        //delete(liveImage);
+        //liveImage = NULL;
+
     }
-
-	EdsRelease(image);
-	
-	cv::imshow(windowName.c_str(), *liveImage);
-
-    //OpenCV_4
-	// cvReleaseImage(&liveImage);
-    liveImage->release();
-    //delete(liveImage);
-    //liveImage = NULL;
 }
 
 int CanonCamera::getNumOfCams()

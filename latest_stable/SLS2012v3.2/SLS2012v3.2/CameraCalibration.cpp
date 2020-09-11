@@ -27,6 +27,21 @@ CameraCalibration::~CameraCalibration(void)
 	unloadCameraImgs();
 }
 
+
+// Utils
+#define waitForInputKey(duration, message) LogAndWaitForInputKey(__FILE__, __LINE__, duration, message)
+int CameraCalibration::LogAndWaitForInputKey(char* szFile, int nLine, int duration, const std::string message)
+{
+	int key = 0;
+
+	std::cout << "At " << szFile << ":" << nLine << " "
+		<< "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit."
+		<< std::endl;
+
+	key = cv::waitKey(duration);
+	return key;
+}
+
 //----------------------------------------Load & Export Data-------------------------------------- 
 
 
@@ -362,7 +377,7 @@ cv::vector<cv::Point2f>  CameraCalibration::manualMarkCheckBoard(cv::Mat img)
 			}
 
 			cv::imshow("Mark Calibration Board", img_copy);
-			cv::waitKey(2);
+			cv::waitKey(2); // FIXME: replace with notif
 		}
 
 		//Draw corners and lines		
@@ -379,7 +394,8 @@ cv::vector<cv::Point2f>  CameraCalibration::manualMarkCheckBoard(cv::Mat img)
 		while( key!=27 && key!=13 )
 		{
 			cv::imshow("Mark Calibration Board", img_copy );
-			key = cv::waitKey();
+
+			key = waitForInputKey(0, "Press [Enter] if Manual Mark Calibration Board Done, or [Esc] To repeat the process.");
 		}
 
 		//if enter set ok as true to stop the loop or repeat the selection process
@@ -435,7 +451,7 @@ float CameraCalibration::markWhite(cv::Mat img)
 				}
 
 				cv::imshow("Mark White", img_copy );
-				cv::waitKey(2);
+				cv::waitKey(2); // FIXME: replace with notif
 			}
 							
 
@@ -444,7 +460,8 @@ float CameraCalibration::markWhite(cv::Mat img)
 			while(key != 27 && key != 13)
 			{
 				cv::imshow("Mark White", img_copy );
-				key=cv::waitKey();
+
+				key = waitForInputKey(0, "Press [Enter] if Mark White, or [Esc] if not.");
 			}
 
 			if(key==13)
@@ -495,7 +512,7 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 		cv::resizeWindow("Calibration",800,600);
 
 		cv::imshow("Calibration",img_grey);
-		cv::waitKey(20);
+		cv::waitKey(20); // FIXME: replace with notif or return code
 
 		system("cls");
 
@@ -524,19 +541,17 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 
 		cv::drawChessboardCorners(img_copy, cvSize(numOfCornersX,numOfCornersY), *camCorners, found);
 
-		int key = cv::waitKey(1);
+		int key = waitForInputKey(0, "Press 'Enter' to continue or 'ESC' to repeat the procedure.");
 
 		if(key==13)
 			break;
 
-		std::cout<<"\nPress 'Enter' to continue or 'ESC' to repeat the procedure.\n";
-
+		// FIXME: remove while if useless
 		while(found)
 		{
 			cv::imshow("Calibration", img_copy );
 
-			key = cv::waitKey(1);
-
+			int key = waitForInputKey(0, "Press [Enter] if chessboard corners are found, or [Esc] if not found.");
 			if(key==27)
 				found=false;
 			if(key==13)
@@ -670,8 +685,8 @@ void CameraCalibration::manualMarkCalibBoardCorners(cv::Mat img,cv::vector<cv::P
 	cv::resizeWindow("Marked Board",800,600);
 	cv::imshow("Marked Board", img_copy);
 
-	cv::waitKey(10);
-	cv::waitKey(10);
+	cv::waitKey(10); // FIXME: replace with notif
+	cv::waitKey(10); // FIXME: replace with notif
 
 	system("cls");
 

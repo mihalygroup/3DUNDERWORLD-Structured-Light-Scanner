@@ -67,7 +67,8 @@ public:
 	//capture images and save them on path folder
 	bool capturePhotoSequence(CameraController *camera, char* path);
 
-	
+	// Utils
+	int LogAndWaitForInputKey(char* szFile, int nLine, int duration, const std::string message);
 
 	// EDS Methods
 

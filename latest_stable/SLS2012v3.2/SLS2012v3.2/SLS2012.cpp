@@ -41,6 +41,19 @@ bool exportPlyGrid;
 bool exportObj;
 bool exportShadowMask;
 
+// Utils
+#define waitForInputKey(duration, message) LogAndWaitForInputKey(__FILE__, __LINE__, duration, message)
+static int LogAndWaitForInputKey(char* szFile, int nLine, int duration, const std::string message)
+{
+	int key = 0;
+
+	std::cout << "At " << szFile << ":" << nLine << " "
+		<< "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit."
+		<< std::endl;
+
+	key = cv::waitKey(duration);
+	return key;
+}
 
 void projectGraysOnly()
 {
@@ -54,10 +67,12 @@ void projectGraysOnly()
 	Projector *proj=new Projector(proj_w,proj_h);
 
 	int i=0;
-	int key = cv::waitKey(10);
+	int key = 0;
 	while(true)
 	{
-		key = cv::waitKey(10);
+		std::string msg = "Press [Enter] to Generate Gray code for image [" + i;
+		msg.append("], Press [Esc] to quit.");
+		key = waitForInputKey(0, msg);
 		proj->showImg( grayCode->getImg(i));
 
 		if(key == 13)
@@ -147,8 +162,11 @@ int renameDataSet()
 		} 
 		while(FindNextFile(h,&data) && count <= numOfFiles);
 	} 
-	else 
-		std::cout << "Error: No such folder." << std::endl;
+	else
+	{
+		std::cout << "No file matching '" << format << "' in ";
+		std::cout << std::endl;
+	}
 	
 	FindClose(h);
 	
@@ -280,7 +298,7 @@ void reconstruct()
 	int num = 0;
 	while(num<2)
 	{
-		std::cout<<"Please specify the number of cameras.\n"; 
+		std::cout<<"Please specify the number of cameras, 2 or more.\n"; 
 		std::cin>>num;
 	}
 
@@ -498,10 +516,8 @@ void captureCalibrationImagesAndScan()
 	//take calibration pictures
 	for(int i=0; i<numOfCams; i++)
 	{
-			
-		cv::waitKey(1);
-			
-		std::cout << "\nPress 'Enter' to capture photos for camera calibration. When you are done press 'Space'.\n" << std::endl;
+						
+		waitForInputKey(0, "Press 'Enter' to capture photos for camera calibration. When you are done press 'Space'.");
 
 		//capture calibration images with camera [i]
 		continue_val = scanner->capturePhotoSequence(cameras[i]);
@@ -564,9 +580,7 @@ void captureCalibrationImagesAndScanASync()
 	for (int i = 0; i < numOfCams; i++)
 	{
 
-		cv::waitKey(1);
-
-		std::cout << "\nPress 'Enter' to capture photos for camera calibration. When you are done press 'Space'.\n" << std::endl;
+		waitForInputKey(0, "Press 'Enter' to capture photos for camera calibration. When you are done press 'Space'.");
 
 		//capture calibration images with camera [i]
 		continue_val = scanner->capturePhotoSequence(cameras[i]);
