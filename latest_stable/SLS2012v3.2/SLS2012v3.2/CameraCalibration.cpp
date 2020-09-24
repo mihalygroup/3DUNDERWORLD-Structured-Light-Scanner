@@ -35,10 +35,12 @@ int CameraCalibration::LogAndWaitForInputKey(char* szFile, int nLine, int durati
 	int key = 0;
 
 	std::cout << "At " << szFile << ":" << nLine << " "
-		<< "Press [Enter] to capture image, Press [Space] to ?? or [Esc] to quit."
+		<< message
 		<< std::endl;
 
 	key = cv::waitKey(duration);
+	std::cout << "Key [" << key << "] " << "entered"
+		<< std::endl;
 	return key;
 }
 
@@ -274,6 +276,7 @@ void image_point_return( int event, int x, int y, int flags, void* param )
 
 void CameraCalibration::loadCameraImgs(const char *folderPath)
 {
+	std::cout << "Load Camera Images" << std::endl;
 
 	Utilities::folderScan(folderPath);
 
@@ -289,13 +292,13 @@ void CameraCalibration::loadCameraImgs(const char *folderPath)
 	{
 		std::stringstream path;
 
-		path<<folderPath<<i+1<<".jpg";
+		path<< _getcwd(NULL, 0) << "/" << folderPath<<i+1<<".jpg";
 		
 		cv::Mat img = cv::imread(path.str().c_str() );
 		
 		if(img.empty())
 		{
-			std::cout<<"Error loading calibration image "<<i+1<<"!";
+			std::cout<<"Error loading calibration image [" << path.str().c_str() << "]";
 			getch();
 			exit(-1);
 		}
@@ -304,12 +307,12 @@ void CameraCalibration::loadCameraImgs(const char *folderPath)
 	}
 
 	std::stringstream path;
-	path<<folderPath<<"extr.jpg";
+	path<< _getcwd(NULL, 0) << "/" << folderPath<<"extr.jpg";
 	extrImg = cv::imread(path.str().c_str());
 
 	if(extrImg.empty())
 	{
-		std::cout<<"Error loading extrinsicts calibration image!";
+		std::cout<<"Error loading extrinsicts calibration image [" << path.str().c_str() << "]";
 		getch();
 		exit(-1);
 	}
@@ -352,7 +355,7 @@ cv::vector<cv::Point2f>  CameraCalibration::manualMarkCheckBoard(cv::Mat img)
 		cv::Mat img_copy ;
 		img.copyTo(img_copy);
 
-		system("cls");
+		// system("cls");
 
 		std::cout<<"Please click on the 4 extrime corners of the board, starting from the top left corner\n";
 
@@ -385,7 +388,7 @@ cv::vector<cv::Point2f>  CameraCalibration::manualMarkCheckBoard(cv::Mat img)
 		cv::line(img_copy, corners[3],corners[2],cvScalar(0,0,255),10);
 		cv::line(img_copy, corners[3],corners[0],cvScalar(0,0,255),10);
 		
-		system("cls");
+		// system("cls");
 		std::cout<<"Press 'Enter' to continue or 'ESC' to select a new area!\n";
 
 		int key = 0;
@@ -482,6 +485,8 @@ float CameraCalibration::markWhite(cv::Mat img)
 bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f> *camCorners,cv::vector<cv::Point3f> *objCorners)
 {
 
+	std::cout << "Find Corners In Camera Images" << std::endl;
+
 	//copy camera img
 	cv::Mat img_grey;
 	cv::Mat img_copy;
@@ -514,7 +519,7 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 		cv::imshow("Calibration",img_grey);
 		cv::waitKey(20); // FIXME: replace with notif or return code
 
-		system("cls");
+		// system("cls");
 
 		//ask the number of squares in img
 		std::cout<<"Give number of squares on x axis: ";
@@ -533,7 +538,8 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 
 		numOfCornersX--;
 		numOfCornersY--;
-		
+
+		std::cout << "Give number of squares on y axis: ";
 		
 		found=cv::findChessboardCorners(img_grey, cvSize(numOfCornersX,numOfCornersY), *camCorners, cv::CALIB_CB_ADAPTIVE_THRESH );
 
@@ -544,10 +550,10 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 		int key = waitForInputKey(0, "Press 'Enter' to continue or 'ESC' to repeat the procedure.");
 
 		if(key==13)
-			break;
+			found=true;
 
 		// FIXME: remove while if useless
-		while(found)
+		if(found)
 		{
 			cv::imshow("Calibration", img_copy );
 
@@ -555,7 +561,7 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 			if(key==27)
 				found=false;
 			if(key==13)
-			break;
+				found=true;
 		}
 
 	}
@@ -571,7 +577,7 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 		//find sub pix of the corners
 		cv::cornerSubPix(img_grey, *camCorners, cvSize(20,20), cvSize(-1,-1), cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1));
 
-		system("cls");
+		// system("cls");
 
 		if(squareSize.height == 0)
 		{
@@ -605,6 +611,7 @@ bool CameraCalibration:: findCornersInCamImg(cv::Mat img,cv::vector<cv::Point2f>
 
 int CameraCalibration::extractImageCorners()
 {
+	std::cout << "Extract Image Corners" << std::endl;
 
 	if(calibImgs.size()==0)
 	{
@@ -617,7 +624,8 @@ int CameraCalibration::extractImageCorners()
 
 	for(int i=0; i<numOfCamImgs; i++)
 	{
-		int cornersReturn;
+		std::cout << "Extract Image Corners for image [" << i << "]"
+			<< std::endl;
 
 		cv::vector<cv::Point2f> cCam;
 		cv::vector<cv::Point3f> cObj;
@@ -688,7 +696,7 @@ void CameraCalibration::manualMarkCalibBoardCorners(cv::Mat img,cv::vector<cv::P
 	cv::waitKey(10); // FIXME: replace with notif
 	cv::waitKey(10); // FIXME: replace with notif
 
-	system("cls");
+	// system("cls");
 
 	float xS,yS;
 	std::cout<< "Give number of squares on x axis: ";
@@ -763,7 +771,7 @@ int CameraCalibration::getNumberOfCameraImgs()
 
 void CameraCalibration::printData()
 {
-	system("cls");
+	// system("cls");
 
 	std::cout<<"-----Camera Matrix------\n";
 	std::cout<<camMatrix<<"\n\n";

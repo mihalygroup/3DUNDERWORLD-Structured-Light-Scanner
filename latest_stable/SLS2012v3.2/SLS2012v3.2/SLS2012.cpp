@@ -379,6 +379,7 @@ void reconstruct()
 
 void generateGrayCodes()
 {
+	std::cout << "Working directory : [" << _getcwd(NULL, 0) << "]" << std::endl;
 	//change directory
 	_chdir("gray/");
 
@@ -398,7 +399,7 @@ void calibration()
 {
 	//change directory
 	_chdir("calibration/");
-	
+
 	int sel = 0;
 	while( sel <= 0)
 	{
@@ -411,7 +412,6 @@ void calibration()
 		CameraCalibration calib;
 
 		std::string path = "camera";
-		path += '0' + i;
 		path += '/';
 
 		//load images
