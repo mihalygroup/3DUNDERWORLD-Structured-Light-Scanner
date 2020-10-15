@@ -11,6 +11,7 @@
 #include "StdAfx.h"
 #include <opencv2/imgproc.hpp>
 #include "Reconstructor.h"
+#include <filesystem>
 
 
 Reconstructor::Reconstructor(int numOfCams_)
@@ -111,9 +112,7 @@ void Reconstructor::setWhiteThreshold(int val)
 
 void Reconstructor::decodePaterns()
 {
-
-	std::cout<<"Decoding paterns...";
-
+	auto start = std::chrono::system_clock::now();
 	int w=camera->width;
 	int h=camera->height;
 
@@ -124,6 +123,9 @@ void Reconstructor::decodePaterns()
 	{
 		for(int j=0; j<h; j++)
 		{
+			int current = j + (i * h);
+			int total = w * h;
+			Utilities::LogProgress("Decoding Patterns", current, total);
 
 			//if the pixel is not shadow reconstruct
 			if(shadowMask.at<uchar>(j,i))
@@ -143,7 +145,9 @@ void Reconstructor::decodePaterns()
 			}
 		}
 	}
-	std::cout<<"done!\n";
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	std::cout << " ... done [" << diff.count() << "s]" << std::endl;
 }
 
 
@@ -178,29 +182,29 @@ void Reconstructor::loadCameras()
 //load camera images
 void Reconstructor::loadCamImgs( std::string folder,std::string prefix,std::string suffix)
 {
-	
+	auto start = std::chrono::system_clock::now();
 	cv::Mat tmp;
 	
-	std::cout<<"Loading Camera Images...";
-
 	if(!camImgs.empty())
 		unloadCamImgs();
 
 	for(int i=0; i<numberOfImgs;i++)
 	{
+		Utilities::LogProgress("Load Camera Image", i, numberOfImgs);
+
 		std::stringstream path;
 
-		path<<folder.c_str();
-		if(i+1<10)
-			path<<"0";
-		path << prefix.c_str() << i+1 << suffix.c_str();
+		path << _getcwd(NULL, 0) << "/" << folder.c_str();
+		if (i < 10)
+			path << "0";
+		path << prefix.c_str() << i << suffix.c_str();
 		
 		tmp.release();
 		tmp = cv::imread(path.str().c_str());
 		
 		if(tmp.empty())
 		{
-			std::cout<<"\nError loading cam image "<<i+1<<". Press Any Key to Exit.";
+			std::cout << "Error loading cam image [" << path.str().c_str() << "]" << std::endl;
 			getch();
 			exit(-1);
 		}
@@ -213,7 +217,8 @@ void Reconstructor::loadCamImgs( std::string folder,std::string prefix,std::stri
 			if(saveAutoContrast)
 			{
 				std::stringstream p;
-				p<<folder.c_str() << "AutoContrastSave/" << prefix.c_str() << i+1 << suffix.c_str();
+				p<<folder.c_str() << "AutoContrastSave/" << prefix.c_str() << i << suffix.c_str();
+				std::cout << "Save Auto Contrast to [" << p.str().c_str() << "]" << std::endl;
 
 				cv::imwrite(p.str().c_str(),tmp);
 			}
@@ -234,8 +239,9 @@ void Reconstructor::loadCamImgs( std::string folder,std::string prefix,std::stri
 		camera->width =camImgs[0].cols;
 	}
 
-	std::cout<<"done!\n";
-	
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	std::cout << " ... done [" << diff.count() << "s]" << std::endl;
 }
 
 //unload camera images
@@ -259,7 +265,7 @@ void Reconstructor::unloadCamImgs()
 
 void Reconstructor::computeShadows()
 {
-	std::cout<<"Estimating Shadows...";
+	auto start = std::chrono::system_clock::now();
 
 	int w = camera->width;
 	int h = camera->height;
@@ -272,6 +278,11 @@ void Reconstructor::computeShadows()
 	{
 		for(int j=0; j<h; j++)
 		{
+
+			int current = j + (i * h);
+			int total = w * h;
+			Utilities::LogProgress("Estimating Shadows", current, total);
+
 			float blackVal, whiteVal;
 
 			blackVal  = (float) Utilities::matGet2D( camImgs[1], i, j);
@@ -288,7 +299,9 @@ void Reconstructor::computeShadows()
 		}
 	}
 
-	std::cout<<"done!\n";
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	std::cout << " ... done [" << diff.count() << "s]" << std::endl;
 }
 
 
@@ -299,13 +312,13 @@ void Reconstructor::runReconstruction()
 	{
 		if(cameras[i].distortion.empty())
 		{
-			std::cout<<"Camera "<<i<< "is not set.\n";
+			std::cout<<"Camera "<<i<< "is not set." << std::endl;
 			exit(-1);
 		}
 
 		if(pathSet[i] == false)
 		{
-			std::cout<<"Image path for camera "<< i <<" is not set.";
+			std::cout<<"Image path for camera "<< i <<" is not set." << std::endl;
 			exit(-1);
 		}
 	}
@@ -338,6 +351,8 @@ void Reconstructor::runReconstruction()
 			std::stringstream path;
 			path<<"cam"<<i+1<<"Mask.png";
 			saveShadowImg(path.str().c_str());
+			std::cout << "Save Shadow Image to [" << path.str().c_str() << "]" << std::endl;
+
 		}
 		
 		decodePaterns();
@@ -353,7 +368,6 @@ void Reconstructor::runReconstruction()
 		for(int j=i+1; j< numOfCams; j++)
 			triangulation(camsPixels[i],cameras[i],camsPixels[j],cameras[j],i,j);
 	}
-
 }
 
 //convert a point from camera to world space
@@ -455,6 +469,8 @@ void Reconstructor::setImgPath(const char folder[],const char prefix[],const cha
 
 void Reconstructor::triangulation(cv::vector<cv::Point> *cam1Pixels, VirtualCamera camera1, cv::vector<cv::Point> *cam2Pixels, VirtualCamera camera2, int cam1index, int cam2index)
 {
+	auto start = std::chrono::system_clock::now();
+
 	int w = proj_w;
 	int h = proj_h;
 	//start reconstraction
@@ -464,15 +480,9 @@ void Reconstructor::triangulation(cv::vector<cv::Point> *cam1Pixels, VirtualCame
 	for(int i=0; i<w; i++)
 	{
 		for(int j=0; j<h; j++)
-		{
-			
-			if(load != (int) (((j+(float)i*h)/((float)w*h))*100))
-			{
-				load =  (int) (((j+(float)i*h)/((float)w*h))*100);
-				system("cls");
-				std::cout<<"Computing 3D Cloud "<<load<< "%";
-			}
-				
+		{			
+			Utilities::LogProgress("Computing 3D Cloud :", j + (i * h), w * h);
+
 			cv::vector<cv::Point> cam1Pixs,cam2Pixs;
 
 			cam1Pixs = cam1Pixels[ac(i,j)];
@@ -514,8 +524,10 @@ void Reconstructor::triangulation(cv::vector<cv::Point> *cam1Pixels, VirtualCame
 					bool ok = Utilities::line_lineIntersection(camera1.position,ray1Vector,camera2.position,ray2Vector,interPoint);
 
 
-					if(!ok)
+					if (!ok) {
 						continue;
+						std::cout << std::endl << "Unexpected Error At " << __FILE__  << ":" << __LINE__ << " ignored and continue with next Camera Pixel" << std::endl;
+					}
 					
 					//get pixel color for the second camera view
 					color2 = Utilities::matGet3D( colorImgs[cam2index], cam2Pixs[c2].x, cam2Pixs[c2].y);
@@ -530,9 +542,10 @@ void Reconstructor::triangulation(cv::vector<cv::Point> *cam1Pixels, VirtualCame
 	}
 	
 
-	system("cls");
-	std::cout<<"Computing 3D Cloud  100%\n";
-
+	// system("cls");
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> diff = end - start;
+	std::cout << " ... done [" << diff.count() << "s]" << std::endl;
 }
 
 

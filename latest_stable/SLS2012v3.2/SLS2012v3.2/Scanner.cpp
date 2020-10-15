@@ -546,7 +546,10 @@ EdsError EDSCALLBACK Scanner::handleStateEvent(EdsStateEvent inEvent,
 {
 	EdsError err = EDS_ERR_OK;
 
-	printf("State Event [0x%08X] received", inEvent);
+	printf("State Event [0x%08X] received with Error Code [0x%08X]", 
+		inEvent, 
+		inEventData);
+
 	switch (inEvent)
 	{
 	default:

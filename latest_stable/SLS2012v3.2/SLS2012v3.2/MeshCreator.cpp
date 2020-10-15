@@ -34,9 +34,12 @@ void MeshCreator::exportObjMesh(std::string path)
 	cv::Point3f point;
 	std::ofstream out1; 
 
-	out1.open(path.c_str());
+	std::stringstream tmpPath;
+	tmpPath << _getcwd(NULL, 0) << "/" << path.c_str();
 
-	std::cout<<"Export "<< path << "...";
+	out1.open(tmpPath.str().c_str());
+
+	std::cout<<"Export Object Mesh "<< tmpPath.str().c_str() << "...";
 
 	for(int i=0; i<w;i++)
 	{
@@ -98,11 +101,13 @@ void MeshCreator::exportPlyMesh(std::string path, bool gridFormat)
 	cv::Vec3f color;
 	std::ofstream out1; 
 
-	out1.open(path.c_str());
 
+	std::stringstream tmpPath;
+	tmpPath << _getcwd(NULL, 0) << "/" << path.c_str();
 
+	out1.open(tmpPath.str().c_str());
 
-	std::cout<<"Export "<< path << "...";
+	std::cout << "Export Ply Mesh " << tmpPath.str().c_str() << "...";
 
 	//find vertex num
 	int vertexCount = 0;

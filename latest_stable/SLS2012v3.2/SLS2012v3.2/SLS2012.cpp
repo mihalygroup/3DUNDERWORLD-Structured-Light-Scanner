@@ -293,7 +293,7 @@ void reconstruct()
 	_chdir("reconstruction/");
 	
 	std::string path;
-	std::string extentsion;
+	std::string extension;
 
 	int num = 0;
 	while(num<2)
@@ -315,15 +315,15 @@ void reconstruct()
 	
 	if(sel == 'j')
 	{
-		extentsion = ".jpg";
+		extension = ".jpg";
 	}
 	else if(sel == 't')
 	{
-		extentsion = ".tif";
+		extension = ".tif";
 	}
 	else if(sel == 'p')
 	{
-		extentsion = ".png";
+		extension = ".png";
 	}
 
 	//set camera's paths
@@ -332,7 +332,7 @@ void reconstruct()
 		std::string p ="dataset/Cam";
 		p += '0'+ (i+1);
 		p += '/';
-		reconstructor->setImgPath(p.c_str(),"",".jpg",i);
+		reconstructor->setImgPath(p.c_str(),"", extension.c_str(),i);
 	}
 
 	//load projector and camera paramiters
@@ -744,7 +744,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::cin>>select;
 
 	//clear console
-	system("cls");
+	// system("cls");
 	
 	Scanner *scanner;
 

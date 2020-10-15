@@ -54,5 +54,8 @@ class Utilities
 		static int				accessMat(cv::Mat m, int x, int y, int i);
 		static int				accessMat(cv::Mat m, int x, int y);
 		static void				folderScan(const char *path);
+
+		// Log
+		static void LogProgress(std::string msg, int current, int total);
 };
 

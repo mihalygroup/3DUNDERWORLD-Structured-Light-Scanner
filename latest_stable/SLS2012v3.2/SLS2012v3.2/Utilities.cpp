@@ -12,6 +12,8 @@
 #include "Utilities.h"
 
 
+
+
 Utilities::Utilities(void)
 {
 }
@@ -509,4 +511,13 @@ void Utilities::folderScan(const char *path)
 		if(path[i] == '/')
 			_chdir("../");
 	}
+}
+
+void Utilities::LogProgress(std::string msg, int current, int total)
+{
+	int key = 0;
+
+	double progress = ((double) current / (double) total) * 100;
+
+	printf("\r%s [%3d%%]", msg.c_str(), (int) progress);
 }
