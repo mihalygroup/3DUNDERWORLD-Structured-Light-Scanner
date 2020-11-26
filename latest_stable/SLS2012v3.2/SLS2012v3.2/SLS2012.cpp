@@ -178,13 +178,17 @@ void createConfigurationFile(char* path)
 	//set default settings
 	projectorWinPos.x = proj_w + 300;
 	projectorWinPos.y = -20;
-	proj_h = 768;
-	proj_w = 1024;
+	// proj_h = 768;
+	// proj_w = 1024;
+	proj_h = 1200;
+	proj_w = 1920;
 	black_threshold = 40;
 	white_threshold = 5;
 	webCamID = 0;
-	cam_w=1600;
-	cam_h=1200;
+	// cam_w=1600;
+	// cam_h=1200;
+	cam_w = 4896;
+	cam_h = 3264;
 	autoContrast = true;
 	saveAutoContrast = false;
 	raySampling = true;
@@ -335,8 +339,12 @@ void reconstruct()
 		reconstructor->setImgPath(p.c_str(),"", extension.c_str(),i);
 	}
 
-	//load projector and camera paramiters
+	//load projector and camera parameters
 	reconstructor->loadCameras();
+
+	// Mihaly DEBUG
+	if(exportShadowMask)
+		reconstructor->enableSavingShadowMask();
 
 	//set reconstuction paramiters
 	reconstructor->setBlackThreshold(black_threshold);

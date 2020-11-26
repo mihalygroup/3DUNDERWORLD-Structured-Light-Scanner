@@ -77,7 +77,7 @@ class Reconstructor
 		
 		bool Reconstructor::getProjPixel(int x, int y, cv::Point &p_out);
 
-		void decodePaterns();
+		void decodePatterns();
 
 		void Reconstructor::triangulation(cv::vector<cv::Point> *cam1Pixels, VirtualCamera cameras1, cv::vector<cv::Point> *cam2Pixels, VirtualCamera cameras2, int cam1index, int cam2index);
 		

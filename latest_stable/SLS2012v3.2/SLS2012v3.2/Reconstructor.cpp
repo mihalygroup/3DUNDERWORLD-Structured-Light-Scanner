@@ -110,7 +110,7 @@ void Reconstructor::setWhiteThreshold(int val)
 }
 
 
-void Reconstructor::decodePaterns()
+void Reconstructor::decodePatterns()
 {
 	auto start = std::chrono::system_clock::now();
 	int w=camera->width;
@@ -351,16 +351,17 @@ void Reconstructor::runReconstruction()
 			std::stringstream path;
 			path<<"cam"<<i+1<<"Mask.png";
 			saveShadowImg(path.str().c_str());
-			std::cout << "Save Shadow Image to [" << path.str().c_str() << "]" << std::endl;
+			std::cout << "Save Shadow Image [" << proj_w << "x" << proj_h << "] to [" << path.str().c_str() << "]" << std::endl;
 
 		}
 		
-		decodePaterns();
+		decodePatterns();
 
 		unloadCamImgs();
 	}
 	
 	//reconstruct 
+
 	points3DProjView = new PointCloudImage( proj_w, proj_h , true );
 	
 	for(int i = 0; i < numOfCams; i++)
@@ -476,12 +477,16 @@ void Reconstructor::triangulation(cv::vector<cv::Point> *cam1Pixels, VirtualCame
 	//start reconstraction
 	int load=0;
 
+	std::cout << "Triangulation phase with resolution [" << proj_w << "x" << proj_h << "]" << std::endl;
+
 	//reconstraction for every projector pixel
 	for(int i=0; i<w; i++)
 	{
 		for(int j=0; j<h; j++)
-		{			
-			Utilities::LogProgress("Computing 3D Cloud :", j + (i * h), w * h);
+		{		
+			int current = j + (i * h);
+			int total = w * h;
+			Utilities::LogProgress("Computing 3D Cloud :", current, total);
 
 			cv::vector<cv::Point> cam1Pixs,cam2Pixs;
 

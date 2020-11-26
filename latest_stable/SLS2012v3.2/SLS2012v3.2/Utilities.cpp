@@ -357,7 +357,11 @@ void Utilities::matSet3D(cv::Mat m, int x, int y, cv::Vec3d val)
 			break;
 		case CV_32F:
 		case CV_MAKETYPE(CV_32F,3):
-			m.at<cv::Vec3f>(y,x) = val;
+			// 
+			m.at<cv::Vec3f>(y, x) = val;
+			m.at<cv::Vec3f>(y,x)[0] = val[0];
+			m.at<cv::Vec3f>(y, x)[1] = val[1];
+			m.at<cv::Vec3f>(y, x)[2] = val[2];
 			break;
 		case CV_64F:
 		case CV_MAKETYPE(CV_64F,3):
